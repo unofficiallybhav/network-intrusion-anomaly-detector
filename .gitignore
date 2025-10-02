@@ -1,0 +1,13 @@
+# Ignore dataset files
+data/*.csv
+data/*.zip
+
+# Ignore outputs
+outputs/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
