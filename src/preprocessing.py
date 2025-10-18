@@ -2,7 +2,11 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
-def load_unsw_data(data_path="../data/", columns_file="../data/NUSW-NB15_features.csv"):
+def load_unsw_data(data_path="../data/", columns_file=None):
+    # Set default columns file path if not provided
+    if columns_file is None:
+        columns_file = f"{data_path}NUSW-NB15_features.csv"
+    
     # Read column names from the features file with encoding handling
     try:
         cols_df = pd.read_csv(columns_file, encoding='utf-8')

@@ -3,7 +3,7 @@ from feature import visualize_pca
 from models import train_random_forest, train_xgboost
 from anomaly import isolation_forest, one_class_svm
 from explainability import explain_with_shap
-from utils import save_model
+from utils import save_model,save_confusion_matrix
 
 def main():
     print("[1] Loading and Preprocessing Data...")
@@ -24,5 +24,11 @@ def main():
     print("[5] Model Explainability (SHAP)...")
     explain_with_shap(rf_model, X_test)
 
+    print("[6] Saving Outputs")
+    save_model(rf_model, "random_forest.pkl")
+    save_confusion_matrix(y_test, rf_model.predict(X_test), "RandomForest",'confusion_matrix_rf')
+    save_model(xgb_model, "xgboost.pkl")
+    save_confusion_matrix(y_test, xgb_model.predict(X_test), "XGBoost",'confusion_matrix_xgb')
+    
 if __name__ == "__main__":
     main()
