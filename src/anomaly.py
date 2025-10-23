@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
-from selection import remove_correlated_features, select_top_features, apply_pca
+from selection import remove_correlated_features,unsupervised_feature_selection, apply_pca
 from tuning import tune_isolation_forest, tune_one_class_svm
 from matplotlib import pyplot as plt
 from sklearn.cluster import DBSCAN
@@ -25,11 +25,10 @@ def run_isolation_forest(X_train, X_test, y_test):
 
 
 def run_one_class_svm(X_train, X_test, y_test):
-    top_features, _ = select_top_features(X_train, y_test, top_n=25)
-    X_train_top = X_train[top_features]
-    X_test_top = X_test[top_features]
+    X_train_corr, _ = remove_correlated_features(X_train)
+    X_test_corr = X_test[X_train_corr.columns]
 
-    X_train_pca, X_test_pca, _ = apply_pca(X_train_top, X_test_top, n_components=10)
+    X_train_pca, X_test_pca, _ = apply_pca(X_train_corr, X_test_corr, n_components=15)
 
     best_params, _ = tune_one_class_svm(X_test_pca, y_test)
 
