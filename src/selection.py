@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold
+
 
 def remove_correlated_features(X, threshold=0.9):
     corr_matrix = X.corr().abs()
@@ -12,13 +13,12 @@ def remove_correlated_features(X, threshold=0.9):
     return X_reduced, to_drop
 
 
-def select_top_features(X_train, y_train, top_n=25):
-    rf = RandomForestClassifier(n_estimators=200, random_state=42)
-    rf.fit(X_train, y_train)
-    importances = pd.Series(rf.feature_importances_, index=X_train.columns)
-    top_features = importances.sort_values(ascending=False).head(top_n).index.tolist()
-    print(f"[✔] Selected top {top_n} features using RandomForest importance.")
-    return top_features, importances
+def unsupervised_feature_selection(X, threshold=0.01):
+    selector = VarianceThreshold(threshold=threshold)
+    X_reduced = selector.fit_transform(X)
+    selected = X.columns[selector.get_support()]
+    print(f"[✔] Retained {len(selected)} high-variance features out of {X.shape[1]}")
+    return pd.DataFrame(X_reduced, columns=selected)
 
 
 def apply_pca(X_train, X_test, n_components=15):
