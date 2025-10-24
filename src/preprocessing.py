@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
+from selection import remove_correlated_features
 
 
 def load_unsw_data(data_path="../data/", columns_file=None):
@@ -34,26 +35,6 @@ def load_unsw_data(data_path="../data/", columns_file=None):
 
     print(f"[✔] Loaded UNSW-NB15 dataset: {df.shape[0]} rows, {df.shape[1]} columns")
     return df
-
-
-
-def detect_high_correlation(df, target_col="label", threshold=0.9):
-
-    if target_col not in df.columns:
-        print(f"[⚠️] Target column '{target_col}' not found. Skipping correlation check.")
-        return []
-
-    corr = df.corr(numeric_only=True)[target_col].dropna().sort_values(ascending=False)
-    high_corr = corr[(abs(corr) > threshold) & (corr.index != target_col)]
-
-    if not high_corr.empty:
-        print(f"\n[⚠️] Highly correlated features (|corr| > {threshold}):")
-        print(high_corr)
-        return high_corr.index.tolist()
-    else:
-        print(f"[✔] No features with correlation above {threshold}.")
-        return []
-
 
 
 def preprocess_data(df, test_size=0.3, random_state=42, drop_corr=True, corr_threshold=0.9):
@@ -92,12 +73,11 @@ def preprocess_data(df, test_size=0.3, random_state=42, drop_corr=True, corr_thr
     X = df.drop(columns=[target_col])
     y = df[target_col]
 
-    # Optional: Detect and drop highly correlated features
-    if drop_corr:
-        correlated = detect_high_correlation(df, target_col=target_col, threshold=corr_threshold)
-        if correlated:
-            X.drop(columns=correlated, inplace=True)
-            print(f"[✔] Dropped {len(correlated)} highly correlated feature(s): {correlated}")
+    #Detect and drop highly correlated features
+    _,correlated = remove_correlated_features(df, target_col=target_col, threshold=corr_threshold)
+    if correlated:
+        X.drop(columns=correlated, inplace=True)
+        print(f"[✔] Dropped {len(correlated)} highly correlated feature(s): {correlated}")
 
     # Split before scaling (avoid leakage)
     X_train, X_test, y_train, y_test = train_test_split(
@@ -109,7 +89,7 @@ def preprocess_data(df, test_size=0.3, random_state=42, drop_corr=True, corr_thr
     X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
 
-    print(f"[✔] Data split complete → Train: {X_train.shape}, Test: {X_test.shape}")
-    print(f"[ℹ] Label distribution (train):\n{y_train.value_counts(normalize=True)}")
+    print(f"Data split complete → Train: {X_train.shape}, Test: {X_test.shape}")
+    print(f"Label distribution (train):\n{y_train.value_counts(normalize=True)}")
 
     return X_train, X_test, y_train, y_test
