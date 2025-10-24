@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
-
+from matplotlib import pyplot as plt
 
 def remove_correlated_features(X, threshold=0.9):
     corr_matrix = X.corr().abs()
@@ -26,4 +26,8 @@ def apply_pca(X_train, X_test, n_components=15):
     X_train_pca = pca.fit_transform(X_train)
     X_test_pca = pca.transform(X_test)
     print(f"[✔] Applied PCA → {n_components} components explain {sum(pca.explained_variance_ratio_):.2%} variance.")
+    plt.figure(figsize=(8,6))
+    plt.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=y, cmap='coolwarm', s=10)
+    plt.title("PCA Visualization of Network Traffic")
+    plt.savefig("../outputs/figures/pca_visualization.png",dpi=300)
     return X_train_pca, X_test_pca, pca
