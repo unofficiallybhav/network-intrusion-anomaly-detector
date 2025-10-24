@@ -6,6 +6,7 @@ from selection import remove_correlated_features,unsupervised_feature_selection,
 from tuning import tune_isolation_forest, tune_one_class_svm
 from matplotlib import pyplot as plt
 from sklearn.cluster import DBSCAN
+import joblib
 
 def run_isolation_forest(X_train, X_test, y_test):
     X_train_corr, _ = remove_correlated_features(X_train)
@@ -21,6 +22,8 @@ def run_isolation_forest(X_train, X_test, y_test):
     auc = roc_auc_score(y_test, preds)
 
     print(f"[✔] Final Isolation Forest ROC-AUC: {auc:.3f}")
+    joblib.dump(iso, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\isolation_forest.pkl" )
+    print(f"[💾] Saved model")
     return iso, auc
 
 
@@ -38,6 +41,8 @@ def run_one_class_svm(X_train, X_test, y_test):
     auc = roc_auc_score(y_test, preds)
 
     print(f"[✔] Final One-Class SVM ROC-AUC: {auc:.3f}")
+    joblib.dump(ocsvm, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\one_class_svm.pkl" )
+    print(f"[💾] Saved model")
     return ocsvm, auc
 
 def dbscan_cluster(X_pca):
