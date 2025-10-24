@@ -1,78 +1,115 @@
+import os
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
+
 def load_unsw_data(data_path="../data/", columns_file=None):
-    # Set default columns file path if not provided
     if columns_file is None:
-        columns_file = f"{data_path}NUSW-NB15_features.csv"
-    
-    # Read column names from the features file with encoding handling
-    try:
-        cols_df = pd.read_csv(columns_file, encoding='utf-8')
-    except UnicodeDecodeError:
+        columns_file = os.path.join(data_path, "NUSW-NB15_features.csv")
+
+    # Handle multiple possible encodings
+    for enc in ['utf-8', 'latin-1', 'cp1252']:
         try:
-            cols_df = pd.read_csv(columns_file, encoding='latin-1')
+            cols_df = pd.read_csv(columns_file, encoding=enc)
+            break
         except UnicodeDecodeError:
-            cols_df = pd.read_csv(columns_file, encoding='cp1252')
-    
-    # Extract column names - adjust based on your file structure
-    # Common formats: single column with names, or 'Name'/'Feature' column
+            continue
+
+    # Extract column names
     if 'Name' in cols_df.columns:
         column_names = cols_df['Name'].tolist()
     elif 'Feature' in cols_df.columns:
         column_names = cols_df['Feature'].tolist()
     else:
-        # If it's just a single column, use the first column
         column_names = cols_df.iloc[:, 0].tolist()
-    
-    files = [f"{data_path}UNSW-NB15_{i}.csv" for i in range(1,5)]
-    # Fix: No header in CSV files, specify column names from file
-    df = pd.concat((pd.read_csv(f, header=None, names=column_names, low_memory=False) 
-                    for f in files), ignore_index=True)
+
+    # Merge all 4 CSV parts
+    csv_files = [os.path.join(data_path, f"UNSW-NB15_{i}.csv") for i in range(1, 5)]
+    df = pd.concat(
+        (pd.read_csv(f, header=None, names=column_names, low_memory=False) for f in csv_files),
+        ignore_index=True
+    )
+
+    print(f"[✔] Loaded UNSW-NB15 dataset: {df.shape[0]} rows, {df.shape[1]} columns")
     return df
 
-def preprocess_data(df):
-    # Drop duplicates, handle NaNs
+
+
+def detect_high_correlation(df, target_col="label", threshold=0.9):
+
+    if target_col not in df.columns:
+        print(f"[⚠️] Target column '{target_col}' not found. Skipping correlation check.")
+        return []
+
+    corr = df.corr(numeric_only=True)[target_col].dropna().sort_values(ascending=False)
+    high_corr = corr[(abs(corr) > threshold) & (corr.index != target_col)]
+
+    if not high_corr.empty:
+        print(f"\n[⚠️] Highly correlated features (|corr| > {threshold}):")
+        print(high_corr)
+        return high_corr.index.tolist()
+    else:
+        print(f"[✔] No features with correlation above {threshold}.")
+        return []
+
+
+
+def preprocess_data(df, test_size=0.3, random_state=42, drop_corr=True, corr_threshold=0.9):
+    # Drop duplicates and fill NaNs
     df.drop_duplicates(inplace=True)
     df.fillna(df.median(numeric_only=True), inplace=True)
 
-    # Find the target column (could be 'label', 'Label', 'attack_cat', etc.)
+    # Drop attack_cat to prevent label leakage
+    if "attack_cat" in df.columns:
+        df.drop(columns=["attack_cat"], inplace=True)
+        print("[✔] Dropped 'attack_cat' column (prevented leakage).")
+
+    # Detect target column
     target_col = None
-    for col in ['label', 'Label', 'attack_cat']:
+    for col in ["label", "Label"]:
         if col in df.columns:
             target_col = col
             break
-    
-    if target_col is None:
-        raise ValueError(f"Target column not found. Available columns: {df.columns.tolist()}")
 
-    # Encode categorical columns (except target)
-    categorical_cols = df.select_dtypes(include=['object']).columns
-    for col in categorical_cols:
+    if target_col is None:
+        raise ValueError(f"[❌] Target column ('label' or 'Label') not found in dataset.")
+
+    # Encode categorical variables (excluding target)
+    cat_cols = df.select_dtypes(include=["object"]).columns
+    for col in cat_cols:
         if col != target_col:
-            # Fix: Convert mixed-type columns to strings first
             df[col] = df[col].astype(str)
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col])
 
-    # Encode target column if it's categorical
-    if df[target_col].dtype == 'object':
-        df[target_col] = df[target_col].astype(str)
-        le_target = LabelEncoder()
-        df[target_col] = le_target.fit_transform(df[target_col])
+    # Encode target if needed
+    if df[target_col].dtype == "object":
+        df[target_col] = LabelEncoder().fit_transform(df[target_col].astype(str))
 
-    # Separate features and target
-    X = df.drop([target_col], axis=1)
+    # Separate features and labels
+    X = df.drop(columns=[target_col])
     y = df[target_col]
 
-    # Scale numeric features
-    scaler = StandardScaler()
-    X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
+    # Optional: Detect and drop highly correlated features
+    if drop_corr:
+        correlated = detect_high_correlation(df, target_col=target_col, threshold=corr_threshold)
+        if correlated:
+            X.drop(columns=correlated, inplace=True)
+            print(f"[✔] Dropped {len(correlated)} highly correlated feature(s): {correlated}")
 
-    # Split dataset
+    # Split before scaling (avoid leakage)
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=42, stratify=y
+        X, y, test_size=test_size, random_state=random_state, stratify=y
     )
+
+    # Scale using only training data statistics
+    scaler = StandardScaler()
+    X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
+    X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
+
+    print(f"[✔] Data split complete → Train: {X_train.shape}, Test: {X_test.shape}")
+    print(f"[ℹ] Label distribution (train):\n{y_train.value_counts(normalize=True)}")
 
     return X_train, X_test, y_train, y_test
