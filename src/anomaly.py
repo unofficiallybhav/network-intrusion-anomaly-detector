@@ -2,45 +2,36 @@ import numpy as np
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
-from selection import remove_correlated_features,unsupervised_feature_selection, apply_pca
 from tuning import tune_isolation_forest, tune_one_class_svm
 from matplotlib import pyplot as plt
 from sklearn.cluster import DBSCAN
 import joblib
 
 def run_isolation_forest(X_train, X_test, y_test):
-    X_train_corr, _ = remove_correlated_features(X_train)
-    X_test_corr = X_test[X_train_corr.columns]
 
-    X_train_pca, X_test_pca, _ = apply_pca(X_train_corr, X_test_corr, n_components=15)
-
-    best_params, _ = tune_isolation_forest(X_test_pca, y_test)
+    best_params, _ = tune_isolation_forest(X_test, y_test)
 
     iso = IsolationForest(random_state=42, **best_params)
-    preds = iso.fit_predict(X_test_pca)
+    preds = iso.fit_predict(X_test)
     preds = np.where(preds == -1, 1, 0)
     auc = roc_auc_score(y_test, preds)
 
-    print(f"[✔] Final Isolation Forest ROC-AUC: {auc:.3f}")
+    print(f"Final Isolation Forest ROC-AUC: {auc:.3f}")
     joblib.dump(iso, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\isolation_forest.pkl" )
     print(f"[💾] Saved model")
     return iso, auc
 
 
 def run_one_class_svm(X_train, X_test, y_test):
-    X_train_corr, _ = remove_correlated_features(X_train)
-    X_test_corr = X_test[X_train_corr.columns]
 
-    X_train_pca, X_test_pca, _ = apply_pca(X_train_corr, X_test_corr, n_components=15)
-
-    best_params, _ = tune_one_class_svm(X_test_pca, y_test)
+    best_params, _ = tune_one_class_svm(X_test, y_test)
 
     ocsvm = OneClassSVM(**best_params)
-    preds = ocsvm.fit_predict(X_test_pca)
+    preds = ocsvm.fit_predict(X_test)
     preds = np.where(preds == -1, 1, 0)
     auc = roc_auc_score(y_test, preds)
 
-    print(f"[✔] Final One-Class SVM ROC-AUC: {auc:.3f}")
+    print(f"Final One-Class SVM ROC-AUC: {auc:.3f}")
     joblib.dump(ocsvm, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\one_class_svm.pkl" )
     print(f"[💾] Saved model")
     return ocsvm, auc
