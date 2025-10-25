@@ -23,36 +23,6 @@ The project is built around a **scalable, research-grade layout**, separating da
 
 ---
 
-## 📁 Project Structure
-network-intrusion-anomaly-detector/
-│
-├── data/ # Raw and processed datasets
-│ ├── raw/
-│ └── processed/
-│
-├── notebooks/ # Experiment notebooks (EDA, model training, etc.)
-│ ├── eda.ipynb
-│ ├── unsupervised_models.ipynb
-│ ├── supervised_models.ipynb
-│ └── model_results.ipynb
-│
-├── outputs/ # Saved models, plots, reports, and metrics
-│
-├── src/ # Core source code
-│ ├── preprocessing.py # Data cleaning and feature encoding
-│ ├── feature_selection.py # Feature importance and reduction
-│ ├── unsupervised_models.py# Isolation Forest, One-Class SVM, etc.
-│ ├── supervised_models.py # LightGBM, Random Forest, etc.
-│ ├── tuning.py # Hyperparameter tuning
-│ ├── utils.py # Helper functions and metrics
-│ └── main.py # Orchestrator script
-│
-├── requirements.txt # Dependencies
-├── LICENSE # License (MIT/Apache recommended)
-└── README.md # Project documentation
-
-
-
 ## ⚙️ Installation
 
 ### 1️⃣ Clone the repository
@@ -60,15 +30,19 @@ network-intrusion-anomaly-detector/
 git clone https://github.com/unofficiallybhav/network-intrusion-anomaly-detector.git
 cd network-intrusion-anomaly-detector
 
-2️⃣ Create a virtual environment
+### 2️⃣ Create a virtual environment
+```bash
+
 python -m venv venv
 source venv/bin/activate      # macOS/Linux
 venv\Scripts\activate         # Windows
 
-3️⃣ Install dependencies
+### 3️⃣ Install dependencies
+```bash
 pip install -r requirements.txt
 
-🧮 Usage
+### 🧮 Usage
+```bash
 Run the main pipeline
 python src/main.py
 
@@ -90,7 +64,7 @@ supervised_models.ipynb — LightGBM, Random Forest, etc.
 
 model_results.ipynb — ROC, F1, confusion matrix, feature importances
 
-📊 Example Results
+### 📊 Example Results
 Model	            ROC-AUC	        F1-Score
 Isolation Forest	0.692	        0.58
 One-Class SVM	    0.631	        0.49
@@ -98,7 +72,7 @@ LightGBM	        0.91	        0.87
 
 Feature importance and dimensionality reduction plots are automatically saved in /outputs/plots/.
 
-🧠 Future Enhancements
+### 🧠 Future Enhancements
 
  Deep learning autoencoders for unsupervised anomaly detection
 
@@ -110,7 +84,7 @@ Feature importance and dimensionality reduction plots are automatically saved in
 
  REST API endpoint for live detection
 
-🧰 Tech Stack
+### 🧰 Tech Stack
 
 Python 3.10+
 
@@ -124,17 +98,17 @@ Matplotlib, Seaborn
 
 JupyterLab
 
-🤝 Contributing
+### 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
 Feel free to open a PR or an issue.
 
-📜 License
+### 📜 License
 
 This project is licensed under the MIT License — see the LICENSE
  file for details.
 
-🧩 Author
+### 🧩 Author
 
 Bhavyy Khurana
 AI & Cybersecurity Enthusiast | Building autonomous threat-hunting systems
@@ -142,7 +116,7 @@ AI & Cybersecurity Enthusiast | Building autonomous threat-hunting systems
 🔗 GitHub
  • LinkedIn
 
-🌟 Acknowledgements
+### 🌟 Acknowledgements
 
 NSL-KDD and CICIDS datasets
 
