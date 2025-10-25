@@ -12,7 +12,7 @@ def train_logistic_regression(X_train, y_train, X_test, y_test):
     print("\n[Logistic Regression]")
     print(classification_report(y_test, preds))
     joblib.dump(model, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\logistic_regression.pkl" )
-    print(f"[💾] Saved model")
+    print(f"Saved model")
     return model
 
 def train_random_forest(X_train, y_train, X_test, y_test):
@@ -22,7 +22,7 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     print("\n[Random Forest]")
     print(classification_report(y_test, preds))
     joblib.dump(model, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\random_forest.pkl" )
-    print(f"[💾] Saved model")
+    print(f"Saved model")
     return model
 
 def train_xgboost(X_train, y_train, X_test, y_test):
@@ -32,7 +32,7 @@ def train_xgboost(X_train, y_train, X_test, y_test):
     print("\n[XGBoost]")
     print(classification_report(y_test, preds))
     joblib.dump(model, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\xgboost.pkl" )
-    print(f"[💾] Saved model")
+    print(f"Saved model")
     return model
 
 def train_lightgbm(X_train, y_train, X_test, y_test):
@@ -42,5 +42,5 @@ def train_lightgbm(X_train, y_train, X_test, y_test):
     print("\n[LightGBM]")
     print(classification_report(y_test, preds))
     joblib.dump(model, r"C:\Users\hp\OneDrive\Desktop\Python\Machine Learning\project\outputs\models\lightgbm.pkl" )
-    print(f"[💾] Saved model")
+    print(f"Saved model")
     return model
